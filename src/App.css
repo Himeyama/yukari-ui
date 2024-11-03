@@ -1,38 +1,56 @@
-.App {
-  text-align: center;
+main {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  padding: 16px;
+  height: 100vh;
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+#editor {
+  margin-right: 8px;
+  grid-template-rows: 1fr auto;
+  display: grid;
+  row-gap: 8px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+#send-button {
+  grid-row: 2 / 3;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+#preview {
+  margin-left: 8px;
+  overflow-y: auto;
 }
 
-.App-link {
-  color: #61dafb;
+#history {
+  margin-left: 8px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+pre code {
+  border-radius: 4px;
+}
+
+/* Webkitブラウザ用のスクロールバーのスタイル */
+::-webkit-scrollbar {
+  width: 21px; /* スクロールバーの幅 */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* スクロールバーの背景を透過 */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #424242; /* スクロールバーのつまみの色と透明度 */
+  border-radius: 0px; /* 角丸 */
+  /* border: 3px solid transparent; つまみの周りの透明な境界線 */
+  background-clip: content-box; /* 背景のクリップ */
+  border-left: 8px solid transparent;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #4F4F4F; /* スクロールバーのつまみの色と透明度 */
+  border-radius: 0px; /* 角丸 */
+  /* border: 3px solid transparent; つまみの周りの透明な境界線 */
+  background-clip: content-box; /* 背景のクリップ */
+  border-left: 8px solid transparent;
 }
