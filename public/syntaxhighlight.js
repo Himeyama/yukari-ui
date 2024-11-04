@@ -40,14 +40,16 @@ class SyntaxHighlight{
 
     static highlight = () => {
         const preview = document.getElementById("preview")
-        const codes = preview.querySelectorAll("pre code")
+        const codes = preview?.querySelectorAll("pre code")
     
         // let temp = ""
-        for(const code of codes) {
-            if(code.getAttribute("uuid") == null) {
-                code.setAttribute("uuid", generateUUID())
-                hljs.highlightElement(code)
-                SyntaxHighlight.observ(code)
+        if(codes){
+            for(const code of codes) {
+                if(code.getAttribute("uuid") == null) {
+                    code.setAttribute("uuid", generateUUID())
+                    hljs.highlightElement(code)
+                    SyntaxHighlight.observ(code)
+                }
             }
         }
     }

@@ -1,8 +1,8 @@
 main {
   display: grid;
   grid-template-columns: 1fr 1fr auto;
-  padding: 16px;
-  height: 100vh;
+  padding: 12px 16px 16px 16px;
+  height: calc(100vh - 4px);
   box-sizing: border-box;
 }
 
@@ -20,6 +20,8 @@ main {
 #preview {
   margin-left: 8px;
   overflow-y: auto;
+  font-size: 1.2em;
+  line-height: 1.5em;
 }
 
 #history {
@@ -28,6 +30,11 @@ main {
 
 pre code {
   border-radius: 4px;
+  font-family: "Cascadia Code"
+}
+
+#progress-bar.hidden {
+  visibility: collapse;
 }
 
 /* Webkitブラウザ用のスクロールバーのスタイル */
