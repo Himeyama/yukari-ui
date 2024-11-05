@@ -26,15 +26,6 @@ interface User {
   label: string
 }
 
-interface Author {
-  label: string
-}
-
-interface Message {
-  role: string,
-  content: string
-}
-
 interface Conversation {
   uuid: string
   user: string
@@ -84,7 +75,7 @@ const History: React.FC<HistoryProps> = ({ items, width, conversations, setMarkd
       <TableHeader>
         <TableRow>
           {columns.map((column) => (
-            <TableHeaderCell key={column.columnKey}>
+            <TableHeaderCell key={column.columnKey} className='table-header-cell'>
               {column.label}
             </TableHeaderCell>
           ))}
@@ -92,9 +83,9 @@ const History: React.FC<HistoryProps> = ({ items, width, conversations, setMarkd
       </TableHeader>
       <TableBody>
         {items.map((item) => (
-          <TableRow key={item.userTitle.label}>
-            <TableCell>
-              <TableCellLayout style={{ userSelect: "none" }} truncate id={item.uuid} onClick={() => clickHistory(item.uuid, conversations, setMarkdown, setAssistant)}>
+          <TableRow key={item.userTitle.label} className='table-row'>
+            <TableCell className='table-cell'>
+              <TableCellLayout className='table-cell-layout' truncate id={item.uuid} onClick={() => clickHistory(item.uuid, conversations, setMarkdown, setAssistant)}>
                 {item.userTitle.label}
               </TableCellLayout>
             </TableCell>
@@ -105,13 +96,55 @@ const History: React.FC<HistoryProps> = ({ items, width, conversations, setMarkd
   );
 };
 
-const apiKey = Cookies.get('OPENAI_API_KEY');
-let openai: OpenAI | null = null
-if (apiKey) {
-  openai = new OpenAI({
+const fetchVersion = async() => {
+  let port = 50027
+  while(port <= 50050){
+    try {
+      const response = await fetch(`http://localhost:${port}/api/version`);
+      // レスポンスが正常かどうかをチェック
+      const data = await response.text();
+      if (data.startsWith("yukari-engine")){
+        return port;
+      }
+    } catch (error) {
+      console.error('Error fetching version:', error);
+    }
+  }
+  return null;
+}
+
+const getAPIKeyFromServer = async(port: number) => {
+  try {
+    const response = await fetch(`http://localhost:${port}/api/apikey`);
+    // レスポンスが正常かどうかをチェック
+    const data = await response.text();
+    // レスポンスデータを返す
+    return data
+  } catch (error) {
+    console.error('Error fetching version:', error);
+  }
+  return null
+}
+
+const getAPIKey = async() => {
+  const version = await fetchVersion()
+  if(!version)
+    return
+  const port = version
+  const apiKey = await getAPIKeyFromServer(port)
+  if(!apiKey)
+    return
+  Cookies.set('OPENAI_API_KEY', apiKey);
+}
+
+const createOpenAI = () => {
+  const apiKey = Cookies.get("OPENAI_API_KEY")
+  if (!apiKey) return null
+  const openai = new OpenAI({
     apiKey: apiKey,
     dangerouslyAllowBrowser: true
-  });
+  })
+  return openai
 }
 
 const getStreamingResponse = async (
@@ -148,7 +181,8 @@ const Send = async (
   conversations: Conversation[],
   setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>
 ) => {
-  console.log("SEND:", markdown)
+  console.log("送信:", markdown)
+  const openai = createOpenAI()
   if (openai != null) {
     const userMessage: ChatCompletionMessageParam = {
       role: "user",

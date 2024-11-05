@@ -15,6 +15,7 @@ main {
 
 #send-button {
   grid-row: 2 / 3;
+  user-select: none;
 }
 
 #preview {
@@ -30,7 +31,31 @@ main {
 
 pre code {
   border-radius: 4px;
-  font-family: "Cascadia Code"
+  font-family: "Cascadia Code";
+  text-wrap: wrap;
+  word-break: break-all;
+  font-size: .75em;
+  line-height: 1.25em;
+}
+
+.table-header-cell {
+  user-select: none;
+}
+
+.table-row {
+  transition: .3s;
+}
+
+.table-cell {
+  padding: 0;
+}
+
+.table-cell-layout {
+  padding: 0 8px 0 8px;
+  user-select: none;
+  height: 100%;
+  cursor: pointer;
+  
 }
 
 #progress-bar.hidden {
