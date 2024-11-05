@@ -100,7 +100,7 @@ const fetchVersion = async() => {
   let port = 50027
   while(port <= 50050){
     try {
-      const response = await fetch(`http://localhost:${port}/api/version`);
+      const response = await fetch(`http://127.0.0.1:${port}/api/version`);
       // レスポンスが正常かどうかをチェック
       const data = await response.text();
       if (data.startsWith("yukari-engine")){
@@ -108,6 +108,7 @@ const fetchVersion = async() => {
       }
     } catch (error) {
       console.error('Error fetching version:', error);
+      port += 1
     }
   }
   return null;
@@ -115,7 +116,7 @@ const fetchVersion = async() => {
 
 const getAPIKeyFromServer = async(port: number) => {
   try {
-    const response = await fetch(`http://localhost:${port}/api/apikey`);
+    const response = await fetch(`http://127.0.0.1:${port}/api/apikey`);
     // レスポンスが正常かどうかをチェック
     const data = await response.text();
     // レスポンスデータを返す
@@ -135,6 +136,7 @@ const getAPIKey = async() => {
   if(!apiKey)
     return
   Cookies.set('OPENAI_API_KEY', apiKey);
+  console.log("Get an apikey from server")
 }
 
 const createOpenAI = () => {
@@ -233,6 +235,7 @@ const Send = async (
 }
 
 const App = () => {
+  getAPIKey()
   const uuid: string = generateUUID()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [messages, setMessages] = useState<ChatCompletionMessageParam[]>([])
