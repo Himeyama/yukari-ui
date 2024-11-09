@@ -19,26 +19,36 @@
       highlightStyle.rel = 'stylesheet';
       const isDarkTheme = window.matchMedia('(prefers-color-scheme: dark)')
       if (isDarkTheme.matches) {
-          highlightStyle.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css');
+        highlightStyle.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css');
       } else {
-          highlightStyle.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css');
+        highlightStyle.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css');
       }
       document.head.appendChild(highlightStyle);
+
+      const getCookieValue = (key) => {
+        // すべてのクッキーを '; ' で分割して配列にします
+        const cookies = document.cookie.split('; ');
+
+        // 各クッキーについてループ
+        for (let cookie of cookies) {
+          // `=` で分割してキーと値に分けます
+          const [cookieKey, cookieValue] = cookie.split('=');
+
+          // 指定されたキーと一致する場合
+          if (cookieKey === key) {
+            return decodeURIComponent(cookieValue); // 値をデコードして返します
+          }
+        }
+
+        // 該当するクッキーが見つからなかった場合は null を返します
+        return null;
+      }
     </script>
     <title>Yukari - AI Chat client</title>
+    <script src="change-tabtitle.js"></script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
   </body>
 </html>

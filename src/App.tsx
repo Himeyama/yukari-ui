@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 import { FluentProvider, webLightTheme, webDarkTheme, Button, Table, TableHeader, TableRow, TableHeaderCell, TableBody, TableCell, TableCellLayout, ProgressBar } from '@fluentui/react-components';
 import {
@@ -118,9 +118,14 @@ const getAPIKeyFromServer = async(port: number) => {
   try {
     const response = await fetch(`http://127.0.0.1:${port}/api/apikey`);
     // レスポンスが正常かどうかをチェック
-    const data = await response.text();
-    // レスポンスデータを返す
-    return data
+    if (response.status === 200) {
+      const data = await response.text();
+      // レスポンスデータを返す
+      return data;
+    } else {
+      // 200以外のステータスの場合は空文字列を返す
+      return "";
+    }
   } catch (error) {
     console.error('Error fetching version:', error);
   }
@@ -133,15 +138,20 @@ const getAPIKey = async() => {
     return
   const port = version
   const apiKey = await getAPIKeyFromServer(port)
-  if(!apiKey)
-    return
-  Cookies.set('OPENAI_API_KEY', apiKey);
+  if(!apiKey || apiKey == ""){
+    return null
+  }
+  return apiKey
+  // Cookies.set('OPENAI_API_KEY', apiKey);
   console.log("Get an apikey from server")
 }
 
-const createOpenAI = () => {
-  const apiKey = Cookies.get("OPENAI_API_KEY")
-  if (!apiKey) return null
+const createOpenAI = async () => {
+  const apiKey = await getAPIKey()
+  if (!apiKey){
+    alert("API キーが設定されていません")
+    return null
+  }
   const openai = new OpenAI({
     apiKey: apiKey,
     dangerouslyAllowBrowser: true
@@ -165,7 +175,7 @@ const getStreamingResponse = async (
   let responseText = ""
   for await (const chunk of stream) {
     const output: string = chunk.choices[0]?.delta?.content || ""
-    console.log(output)
+    // console.log(output)
     responseText += output
     setAssistant(responseText)
   }
@@ -184,69 +194,72 @@ const Send = async (
   setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>
 ) => {
   console.log("送信:", markdown)
-  const openai = createOpenAI()
-  if (openai != null) {
-    const userMessage: ChatCompletionMessageParam = {
-      role: "user",
-      content: markdown
+  const openai = await createOpenAI()
+  if (openai == null) return;
+  const userMessage: ChatCompletionMessageParam = {
+    role: "user",
+    content: markdown
+  }
+  const requestMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [...messages, userMessage]
+  // プログレスバーの表示
+  if (progressRef.current) {
+    const current: HTMLElement = progressRef.current
+    current.classList.remove("hidden")
+  }
+  // 送信
+  const assistant = await getStreamingResponse(openai, requestMessages, setAssistant)
+  // プログレスバーの非表示
+  if (progressRef.current) {
+    const current: HTMLElement = progressRef.current
+    current.classList.add("hidden")
+  }
+  if (assistant) {
+    // Message リストに追加
+    const assistantMessage: ChatCompletionMessageParam = {
+      role: "assistant",
+      content: assistant
     }
-    const requestMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [...messages, userMessage]
-    // プログレスバーの表示
-    if (progressRef.current) {
-      const current: HTMLElement = progressRef.current
-      current.classList.remove("hidden")
+    setMessages([...requestMessages, assistantMessage])
+
+    const uuid: string = generateUUID()
+    const conversation: Conversation = {
+      uuid: uuid,
+      user: markdown,
+      assistant: assistant
     }
-    // 送信
-    const assistant = await getStreamingResponse(openai, requestMessages, setAssistant)
-    // プログレスバーの非表示
-    if (progressRef.current) {
-      const current: HTMLElement = progressRef.current
-      current.classList.add("hidden")
+    setConversations([...conversations, conversation])
+
+    // Markdown を表示
+    setAssistant(assistant)
+
+    const user1line = markdown.split("\n")[0]
+    document.title = user1line
+    const historyItem: HistoryItem = {
+      userTitle: { label: user1line },
+      uuid: uuid
     }
-    if (assistant) {
-      // Message リストに追加
-      const assistantMessage: ChatCompletionMessageParam = {
-        role: "assistant",
-        content: assistant
-      }
-      setMessages([...requestMessages, assistantMessage])
 
-      const uuid: string = generateUUID()
-      const conversation: Conversation = {
-        uuid: uuid,
-        user: markdown,
-        assistant: assistant
-      }
-      setConversations([...conversations, conversation])
-
-      // Markdown を表示
-      setAssistant(assistant)
-
-      const user1line = markdown.split("\n")[0]
-      const historyItem: HistoryItem = {
-        userTitle: { label: user1line },
-        uuid: uuid
-      }
-
-      // 履歴アイテムに追加
-      setItems([historyItem, ...historyItems])
-    }
+    // 履歴アイテムに追加
+    setItems([historyItem, ...historyItems])
   }
 }
 
 const App = () => {
-  getAPIKey()
-  const uuid: string = generateUUID()
+  useEffect(() => {
+    getAPIKey()
+    console.log("init.")
+  }, [])
+
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [messages, setMessages] = useState<ChatCompletionMessageParam[]>([])
   const { t } = useTranslation()
-  const theme = getSystemTheme() === "light" ? webLightTheme : webDarkTheme;
-  const vsTheme = getSystemTheme() === "light" ? "vs-light" : "vs-dark";
+  const theme = getSystemTheme() === "light" ? webLightTheme : webDarkTheme
+  const vsTheme = getSystemTheme() === "light" ? "vs-light" : "vs-dark"
 
-  const [markdown, setMarkdown] = useState("");
-  const [assistant, setAssistant] = useState("");
+  const [markdown, setMarkdown] = useState("")
+  const [assistant, setAssistant] = useState("")
   const handleEditorChange = (newValue: string | undefined) => {
-    setMarkdown(newValue || "");
+    setMarkdown(newValue || "")
   }
 
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([
