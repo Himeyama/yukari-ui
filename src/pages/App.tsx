@@ -108,7 +108,7 @@ const getStreamingResponse = async (
   return responseText
 }
 
-const Send = async (
+const send = async (
   markdown: string,
   setAssistant: React.Dispatch<React.SetStateAction<string>>,
   historyItems: HistoryItem[],
@@ -171,15 +171,34 @@ const Send = async (
 }
 
 const App = () => {
+  const [theme, setTheme] = useState(webLightTheme);
+
+  const handleThemeChange = (event: any) => {
+    setTheme(event.matches ? webDarkTheme : webLightTheme);
+  };
+
   useEffect(() => {
-    fetchAPIKey()
     console.log("init.")
+    fetchAPIKey()
+    
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    // 初期テーマの設定
+    setTheme(mediaQuery.matches ? webDarkTheme : webLightTheme);
+
+    // 監視の登録
+    mediaQuery.addEventListener('change', handleThemeChange);
+
+    // クリーンアップ関数
+    return () => {
+      mediaQuery.removeEventListener('change', handleThemeChange);
+    };
   }, []);
 
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [messages, setMessages] = useState<ChatCompletionMessageParam[]>([])
   const { t } = useTranslation()
-  const theme = getSystemTheme() === "light" ? webLightTheme : webDarkTheme // ここはシステムテーマを適宜取得するように変更することもできる
+  // const theme = getSystemTheme() === "light" ? webLightTheme : webDarkTheme // ここはシステムテーマを適宜取得するように変更することもできる
   const vsTheme = getSystemTheme() === "light" ? "vs-light" : "vs-dark"
   const [markdown, setMarkdown] = useState("")
   const [assistant, setAssistant] = useState("")
@@ -202,7 +221,7 @@ const App = () => {
             <div style={{ borderRadius: '4px', overflow: 'hidden' }}>
               <Editor theme={vsTheme} options={{ wordWrap: 'on' }} height="calc(100vh - 72px)" defaultLanguage="markdown" value={markdown} onChange={handleEditorChange} />
             </div>
-            <Button id="send-button" appearance="primary" onClick={() => Send(markdown, setAssistant, historyItems, setHistoryItems, progressRef, messages, setMessages, conversations, setConversations)} style={{ width: '100%' }} icon={<SendFilled />}>{t('send')}</Button>
+            <Button id="send-button" appearance="primary" onClick={() => send(markdown, setAssistant, historyItems, setHistoryItems, progressRef, messages, setMessages, conversations, setConversations)} style={{ width: '100%' }} icon={<SendFilled />}>{t('send')}</Button>
           </div>
           <div id="preview">
             <Markdown children={assistant} />

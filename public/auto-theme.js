@@ -10,4 +10,4 @@ const autoTheme = () => {
     }
 }
 
-setInterval(autoTheme, 500)
+// setInterval(autoTheme, 500)
