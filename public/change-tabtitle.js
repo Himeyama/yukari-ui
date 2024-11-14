@@ -5,7 +5,11 @@ const changeTitle = () => {
         mutations.forEach(mutation => {
             if (mutation.type === 'childList') {
                 console.log("Title:", document.title)
-                window.chrome.webview.postMessage(document.title)
+                try{
+                    window.chrome.webview.postMessage(document.title)
+                }catch(error){
+                    console.error(error.message)
+                }
             }
         })
     })

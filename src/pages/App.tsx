@@ -1,16 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import '../styles/App.css';
-import { FluentProvider, webLightTheme, webDarkTheme, Button, Table, TableHeader, TableRow, TableHeaderCell, TableBody, TableCell, TableCellLayout, ProgressBar } from '@fluentui/react-components';
-import {
-  SendFilled
-} from "@fluentui/react-icons";
+import { FluentProvider, webLightTheme, webDarkTheme, Button, ProgressBar } from '@fluentui/react-components';
 import { Editor } from '@monaco-editor/react';
 import Markdown from 'react-markdown';
-import OpenAI from "openai";
-import Cookies from 'js-cookie';
 import { useTranslation } from 'react-i18next';
-import "../i18n/i18n"
+import { SendFilled } from "@fluentui/react-icons";
+import History from '../components/History/History';
+import { fetchAPIKey } from '../services/api';
+import { Conversation, HistoryItem } from '../services/types';
+import "../i18n/i18n";
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import OpenAI from 'openai';
 import { v4 as uuidv4 } from 'uuid';
 
 const getSystemTheme = (): string => {
@@ -21,80 +21,6 @@ const getSystemTheme = (): string => {
 const generateUUID = (): string => {
   return uuidv4();
 }
-
-interface User {
-  label: string
-}
-
-interface Conversation {
-  uuid: string
-  user: string
-  assistant: string
-}
-
-interface HistoryItem {
-  userTitle: User,
-  uuid: string
-}
-
-interface HistoryProps {
-  items: HistoryItem[]
-  width: number
-  conversations: Conversation[]
-  setMarkdown: React.Dispatch<React.SetStateAction<string>>
-  setAssistant: React.Dispatch<React.SetStateAction<string>>
-}
-
-const clickHistory = (
-  uuid: string,
-  conversations: Conversation[],
-  setMarkdown: React.Dispatch<React.SetStateAction<string>>,
-  setAssistant: React.Dispatch<React.SetStateAction<string>>
-) => {
-  const contents: Conversation[] = conversations.filter(e => e.uuid === uuid)
-  if (contents.length > 0) {
-    const content: Conversation = contents[0]
-    const user = content.user
-    const assistant = content.assistant
-    setMarkdown(user)
-    setAssistant(assistant)
-    console.log(user, assistant)
-  }
-}
-
-const History: React.FC<HistoryProps> = ({ items, width, conversations, setMarkdown, setAssistant }) => {
-  const { t } = useTranslation()
-
-  const columns =
-    [
-      { columnKey: "user", label: t('history') }
-    ]
-
-  return (
-    <Table arial-label="Default table" style={{ maxWidth: width + "px" }}>
-      <TableHeader>
-        <TableRow>
-          {columns.map((column) => (
-            <TableHeaderCell key={column.columnKey} className='table-header-cell'>
-              {column.label}
-            </TableHeaderCell>
-          ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {items.map((item) => (
-          <TableRow key={item.userTitle.label} className='table-row'>
-            <TableCell className='table-cell'>
-              <TableCellLayout className='table-cell-layout' truncate id={item.uuid} onClick={() => clickHistory(item.uuid, conversations, setMarkdown, setAssistant)}>
-                {item.userTitle.label}
-              </TableCellLayout>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-};
 
 const fetchVersion = async() => {
   let port = 50027
@@ -246,29 +172,26 @@ const Send = async (
 
 const App = () => {
   useEffect(() => {
-    getAPIKey()
+    fetchAPIKey()
     console.log("init.")
-  }, [])
+  }, []);
 
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [messages, setMessages] = useState<ChatCompletionMessageParam[]>([])
   const { t } = useTranslation()
-  const theme = getSystemTheme() === "light" ? webLightTheme : webDarkTheme
+  const theme = getSystemTheme() === "light" ? webLightTheme : webDarkTheme // ここはシステムテーマを適宜取得するように変更することもできる
   const vsTheme = getSystemTheme() === "light" ? "vs-light" : "vs-dark"
-
   const [markdown, setMarkdown] = useState("")
   const [assistant, setAssistant] = useState("")
+  const [historyItems, setHistoryItems] = useState<HistoryItem[]>([])
+
   const handleEditorChange = (newValue: string | undefined) => {
     setMarkdown(newValue || "")
   }
 
-  const [historyItems, setHistoryItems] = useState<HistoryItem[]>([
-  ])
-
   const historyWidth: number = 244
-  // const historyWidth: number = 0
 
-  const progressRef = useRef(null)
+  const progressRef = useRef(null);
 
   return (
     <FluentProvider theme={theme}>
@@ -277,20 +200,20 @@ const App = () => {
         <main>
           <div id="editor">
             <div style={{ borderRadius: '4px', overflow: 'hidden' }}>
-              <Editor options={{ wordWrap: 'on' }} height="calc(100vh - 72px)" defaultLanguage="markdown" value={markdown} theme={vsTheme} onChange={handleEditorChange} />
+              <Editor theme={vsTheme} options={{ wordWrap: 'on' }} height="calc(100vh - 72px)" defaultLanguage="markdown" value={markdown} onChange={handleEditorChange} />
             </div>
             <Button id="send-button" appearance="primary" onClick={() => Send(markdown, setAssistant, historyItems, setHistoryItems, progressRef, messages, setMessages, conversations, setConversations)} style={{ width: '100%' }} icon={<SendFilled />}>{t('send')}</Button>
           </div>
           <div id="preview">
             <Markdown children={assistant} />
           </div>
-          <div id="history">
-            <History items={historyItems} width={historyWidth} conversations={conversations} setMarkdown={setMarkdown} setAssistant={setAssistant} />
+          <div id="history" style={{width: historyWidth}}>
+            <History items={historyItems} conversations={conversations} setMarkdown={setMarkdown} setAssistant={setAssistant} />
           </div>
         </main>
       </div>
     </FluentProvider>
   );
-}
+};
 
 export default App;
