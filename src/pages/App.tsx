@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import './App.css';
+import '../styles/App.css';
 import { FluentProvider, webLightTheme, webDarkTheme, Button, Table, TableHeader, TableRow, TableHeaderCell, TableBody, TableCell, TableCellLayout, ProgressBar } from '@fluentui/react-components';
 import {
   SendFilled
@@ -9,7 +9,7 @@ import Markdown from 'react-markdown';
 import OpenAI from "openai";
 import Cookies from 'js-cookie';
 import { useTranslation } from 'react-i18next';
-import "./i18n"
+import "../i18n/i18n"
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { v4 as uuidv4 } from 'uuid';
 
