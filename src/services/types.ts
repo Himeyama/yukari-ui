@@ -9,6 +9,7 @@ export interface Conversation {
 }
 
 export interface HistoryItem {
-    userTitle: User;
+    user: string;
+    assistant: string;
     uuid: string;
 }

@@ -5,7 +5,6 @@ import { Editor } from '@monaco-editor/react';
 import Markdown from 'react-markdown';
 import { useTranslation } from 'react-i18next';
 import { SendFilled } from "@fluentui/react-icons";
-import History from '../components/History/History';
 import { Conversation, HistoryItem } from '../services/types';
 import "../i18n/i18n";
 import { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
@@ -116,6 +115,14 @@ const getStreamingResponse = async (
   return responseText
 }
 
+// UTF-8文字列をBase64にエンコードする関数
+const encodeBase64UTF8 = (input: string) => {
+  let encoder = new TextEncoder();
+  let data = encoder.encode(input);
+  let base64String = btoa(String.fromCharCode.apply(null, (data as any)));
+  return base64String;
+}
+
 const send = async (
   markdown: string,
   setAssistant: React.Dispatch<React.SetStateAction<string>>,
@@ -170,9 +177,13 @@ const send = async (
     const user1line = markdown.split("\n")[0]
     document.title = user1line
     const historyItem: HistoryItem = {
-      userTitle: { label: user1line },
+      user: markdown,
+      assistant: assistant,
       uuid: uuid
     }
+
+    const historyData: string = encodeBase64UTF8(JSON.stringify(historyItem));
+    (window as any).chrome.webview.postMessage(`{"type": "history", "data": "${historyData}"}`)
 
     // 履歴アイテムに追加
     setItems([historyItem, ...historyItems])
@@ -254,12 +265,6 @@ const App = () => {
           <div id="preview">
             <Markdown children={assistant} />
           </div>
-          {/* <div id="history" style={{width: historyWidth}} className={historyClose}>
-            <History items={historyItems} conversations={conversations} setMarkdown={setMarkdown} setAssistant={setAssistant} />
-            <div id="history-open-close">
-              <Button id="history-open-close-button" onClick={() => closeHistory()}>{t('close')}</Button>
-            </div>
-          </div> */}
         </main>
       </div>
     </FluentProvider>
