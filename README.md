@@ -44,3 +44,11 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+```ps1
+yarn run build
+if(Test-Path "$env:localappdata\Yukari\yukari-ui"){
+    Remove-Item -Recurse -Force "$env:localappdata\Yukari\yukari-ui"
+}
+Copy-Item -Recurse build "$env:localappdata\Yukari\yukari-ui"
+```

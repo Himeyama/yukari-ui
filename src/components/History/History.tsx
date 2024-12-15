@@ -22,7 +22,7 @@ const History: React.FC<HistoryProps> = ({ items, conversations, setMarkdown, se
   };
 
   return (
-    <Table aria-label="Default table">
+    <Table aria-label="Default table" id="history-table">
       <TableHeader>
         <TableRow>
           <TableHeaderCell>{t('history')}</TableHeaderCell>

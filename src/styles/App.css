@@ -14,7 +14,7 @@ main {
 }
 
 #send-button {
-  grid-row: 2 / 3;
+  grid-row: 3 / 4;
   user-select: none;
 }
 
@@ -23,10 +23,34 @@ main {
   overflow-y: auto;
   font-size: 1.2em;
   line-height: 1.5em;
+  grid-column: 2 / 3;
 }
 
 #history {
   margin-left: 8px;
+  grid-template-rows: auto auto 1fr;
+  display: grid;
+  grid-column: 3 / 4;
+}
+
+#history.history-close {
+  display: none;
+}
+
+#history-open-close {
+  grid-row: 1 / 2;
+  grid-column: 1 / 2;
+  z-index: 100;
+  text-align: right;
+}
+
+#history-open-close-button {
+  margin-bottom: 4px;
+}
+
+#history-table {
+  grid-row: 1 / 3;
+  grid-column: 1 / 2;
 }
 
 pre code {
@@ -55,7 +79,6 @@ pre code {
   user-select: none;
   height: 100%;
   cursor: pointer;
-  
 }
 
 #progress-bar.hidden {
