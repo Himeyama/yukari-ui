@@ -123,6 +123,21 @@ const encodeBase64UTF8 = (input: string) => {
   return base64String;
 }
 
+// Base64エンコードされた文字列をUTF-8文字列にデコードする関数
+const decodeBase64UTF8 = (input: string): string => {
+  // Base64の文字列をデコード
+  const binaryString = atob(input);
+  // バイナリ文字列をUint8Arrayに変換
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+  }
+  // Uint8ArrayをUTF-8文字列に変換
+  const decoder = new TextDecoder('utf-8');
+  return decoder.decode(bytes);
+}
+
 const send = async (
   markdown: string,
   setAssistant: React.Dispatch<React.SetStateAction<string>>,
@@ -215,6 +230,13 @@ const App = () => {
       }
     }
 
+    setInterval(() => {
+      if((window as any).markdown != null){
+        setAssistant((window as any).markdown);
+        (window as any).markdown = null
+      }
+    }, 50);
+
     window.addEventListener('keydown', handleKeyDown)
 
     // クリーンアップ関数
@@ -257,7 +279,7 @@ const App = () => {
               <option value="gpt-4o-mini">GPT-4o mini</option>
               <option value="o1-mini">o1-mini</option>
             </Select> */}
-            <div style={{ borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{ borderRadius: '4px', overflow: 'hidden' }} id="monaco-editor">
               <Editor theme={vsTheme} options={{ wordWrap: 'on' }} height="calc(100vh - 80px)" defaultLanguage="markdown" value={markdown} onChange={handleEditorChange} />
             </div>
             <Button id="send-button" appearance="primary" onClick={() => send(markdown, setAssistant, historyItems, setHistoryItems, progressRef, messages, setMessages, conversations, setConversations, selectedModel)} style={{ width: '100%' }} icon={<SendFilled />}>{t('send')}</Button>
@@ -283,4 +305,26 @@ export default App;
 (window as any).setLanguageModel = (model: string) => {
   console.log(model);
   (window as any).languageModel = model
+}
+
+(window as any).setEditorText = (text: string) => {
+  eval("monaco").editor.getEditors()[0].setValue(text)
+}
+
+(window as any).setOutputText = (text: string) => {
+  (window as any).window.markdown = text
+  // (window as any).languageModel = model
+}
+
+(window as any).setEditorBase64 = (base64: string) => {
+  const text: string = decodeBase64UTF8(base64);
+  (window as any).setEditorText(text)
+  console.log("editor:", text);
+}
+
+(window as any).setOutputBase64 = (base64: string) => {
+  const text: string = decodeBase64UTF8(base64);
+  (window as any).setOutputText(text)
+  console.log("output:", text);
+  // (window as any).languageModel = model
 }
