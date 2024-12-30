@@ -187,7 +187,10 @@ const send = async (
     setConversations([...conversations, conversation])
 
     // Markdown を表示
-    setAssistant(assistant)
+    setAssistant(assistant);
+
+    // アシスタントを記録
+    (window as any).setAssistant(assistant)
 
     const user1line = markdown.split("\n")[0]
     document.title = user1line
@@ -227,12 +230,21 @@ const App = () => {
       // F5 (キーコード 116) が押されたとき
       if (event.key === 'F5') {
         event.preventDefault()  // デフォルトの動作をキャンセル
+      } else if ((event as any).shiftKey && event.key === 'Enter') {
+        console.log("Shift + Enter")
+        const sendButton = document.getElementById("send-button")
+        sendButton?.click()
       }
     }
 
     setInterval(() => {
       if((window as any).markdown != null){
         setAssistant((window as any).markdown);
+        // アシスタントを記録
+        try{
+          (window as any).setAssistant((window as any).markdown)
+        }catch(error){
+        }
         (window as any).markdown = null
       }
     }, 50);
@@ -305,6 +317,16 @@ export default App;
 (window as any).setLanguageModel = (model: string) => {
   console.log(model);
   (window as any).languageModel = model
+}
+
+(window as any).setAPIKey = (apiKey: string) => {
+  console.log(apiKey);
+  (window as any).apiKey = apiKey
+}
+
+(window as any).assistant = "";
+(window as any).setAssistant = (assistant: string) => {
+  (window as any).assistant = assistant
 }
 
 (window as any).setEditorText = (text: string) => {
