@@ -234,6 +234,7 @@ const App = () => {
         console.log("Shift + Enter")
         const sendButton = document.getElementById("send-button")
         sendButton?.click()
+        event.preventDefault()
       }
     }
 
@@ -327,6 +328,10 @@ export default App;
 (window as any).assistant = "";
 (window as any).setAssistant = (assistant: string) => {
   (window as any).assistant = assistant
+}
+
+(window as any).getAssistant = () => {
+  (window as any).chrome.webview.postMessage(`{"type": "get-assistant", "data": "${encodeBase64UTF8((window as any).assistant)}"}`)
 }
 
 (window as any).setEditorText = (text: string) => {
