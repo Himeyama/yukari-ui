@@ -50,7 +50,11 @@ const getLanguageModel = async() : Promise<string> => {
 const getAPIKey = async() => {
   let apiKey: string = "";  
   try{
-    (window as any).chrome.webview.postMessage(`{"type": "get", "data": "apiKey"}`)
+    const model = await getLanguageModel();
+    if (/^grok/.test(model))
+      (window as any).chrome.webview.postMessage(`{"type": "get", "data": "grokApiKey"}`)
+    else
+      (window as any).chrome.webview.postMessage(`{"type": "get", "data": "openAIApiKey"}`)
     const waitForApiKey = async() : Promise<string> => {
       return await new Promise((resolve) => {
         const interval = setInterval(() => {
@@ -92,17 +96,20 @@ const getStreamingResponse = async (
   openai: OpenAI | null,
   messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[],
   setAssistant: React.Dispatch<React.SetStateAction<string>>,
-  selectedModel: string
 ): Promise<string | null> => {
   if (openai == null)
     return null
-  // console.log(selectedModel)
+  
   const model = await getLanguageModel();
-  console.log(model)
+  
+  console.log("model:", model);
+  if (/^grok/.test(model))
+    openai.baseURL = "https://api.x.ai/v1"
+
   const stream = await openai.chat.completions.create({
     model: model,
     messages: messages,
-    stream: true,
+    stream: true
   })
 
   let responseText = ""
@@ -164,7 +171,7 @@ const send = async (
     current.classList.remove("hidden")
   }
   // 送信
-  const assistant = await getStreamingResponse(openai, requestMessages, setAssistant, selectedModel)
+  const assistant = await getStreamingResponse(openai, requestMessages, setAssistant)
   // プログレスバーの非表示
   if (progressRef.current) {
     const current: HTMLElement = progressRef.current
@@ -309,7 +316,12 @@ const App = () => {
 export default App;
 
 (window as any).apiKey = "";
-(window as any).setAPIKey = (apiKey: string) => {
+(window as any).setOpenAIAPIKey = (apiKey: string) => {
+  console.log(apiKey);
+  (window as any).apiKey = apiKey
+}
+
+(window as any).setGrokAPIKey = (apiKey: string) => {
   console.log(apiKey);
   (window as any).apiKey = apiKey
 }
@@ -318,11 +330,6 @@ export default App;
 (window as any).setLanguageModel = (model: string) => {
   console.log(model);
   (window as any).languageModel = model
-}
-
-(window as any).setAPIKey = (apiKey: string) => {
-  console.log(apiKey);
-  (window as any).apiKey = apiKey
 }
 
 (window as any).assistant = "";
